@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFG Auto-Fill Document System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span>CFG – Context-Free Generator</span>
+            </div>
+            <button class="tab-btn" data-tab="about">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4"/>
+        <path d="M12 8h.01"/>
+    </svg>
+    About
+</button>
+            <div class="nav-actions">
+                <button class="btn-icon" id="themeToggle" title="Toggle theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tab Navigation -->
+    <div class="tab-container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="profile">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                My Profile
+            </button>
+            <button class="tab-btn" data-tab="upload">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Upload Document
+            </button>
+            <button class="tab-btn" data-tab="autofill">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Auto-Fill
+            </button>
+            <button class="tab-btn" data-tab="editProfile">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+    </svg>
+    Edit My Data
+</button>
+
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Tab Content: My Profile -->
+        <div class="tab-content active" id="profile-tab">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">User Profile</h2>
+                    <p class="card-subtitle">Store your information once, use it everytime.</p>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        <!-- Personal Information -->
+                        <div class="form-section">
+                            <h3 class="section-heading">Personal Information</h3>
+                            <div class="form-grid">
+                                <div class="field-group">
+                                    <label class="field-label required">Full Name</label>
+                                    <input type="text" id="fullName" class="field-input" placeholder="Juan Dela Cruz">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label required">Date of Birth</label>
+                                    <input type="date" id="dateOfBirth" class="field-input"
+       min="1900-01-01" max="2026-12-31">
+
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Gender</label>
+                                    <select id="gender" class="field-input">
+                                        <option value="">Select...</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Nationality</label>
+                                    <input type="text" id="nationality" class="field-input" placeholder="Filipino">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="form-section">
+                            <h3 class="section-heading">Contact Information</h3>
+                            <div class="form-grid">
+                                <div class="field-group full-width">
+                                    <label class="field-label required">Email Address</label>
+                                    <input type="email" id="email" class="field-input" placeholder="juan.delacruz@email.com">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label required">Phone Number</label>
+                                    <input type="tel" id="phone" class="field-input" placeholder="+63 912 345 6789">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Alternate Phone</label>
+                                    <input type="tel" id="alternatePhone" class="field-input" placeholder="+63 912 345 6789">
+                                </div>
+                                <div class="field-group full-width">
+                                    <label class="field-label required">Complete Address</label>
+                                    <textarea id="address" class="field-textarea" rows="3" placeholder="House No., Street, Barangay, City, Province, Postal Code"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Educational Background -->
+                        <div class="form-section">
+                            <h3 class="section-heading">Educational Background</h3>
+                            <div class="form-grid">
+                                <div class="field-group">
+                                    <label class="field-label">Highest Education Level</label>
+                                    <select id="educationLevel" class="field-input">
+                                        <option value="">Select...</option>
+                                        <option value="highschool">High School</option>
+                                        <option value="undergraduate">Undergraduate</option>
+                                        <option value="bachelor">Bachelor's Degree</option>
+                                        <option value="master">Master's Degree</option>
+                                        <option value="doctorate">Doctorate</option>
+                                    </select>
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">School/University</label>
+                                    <input type="text" id="school" class="field-input" placeholder="Polytechnic University of the Philippines">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Course/Program</label>
+                                    <input type="text" id="course" class="field-input" placeholder="Bachelor of Science in Computer Science">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Year Graduated</label>
+                                    <input type="number" id="yearGraduated" class="field-input" placeholder="2025" min="1950" max="2050">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employment Information -->
+                        <div class="form-section">
+                            <h3 class="section-heading">Employment Information</h3>
+                            <div class="form-grid">
+                                <div class="field-group">
+                                    <label class="field-label">Current Employer</label>
+                                    <input type="text" id="employer" class="field-input" placeholder="Company Name">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Position/Job Title</label>
+                                    <input type="text" id="position" class="field-input" placeholder="Software Engineer">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Years of Experience</label>
+                                    <input type="number" id="experience" class="field-input" placeholder="5" min="0">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Monthly Salary</label>
+                                    <input type="number" id="salary" class="field-input" placeholder="50000" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Government IDs -->
+                        <div class="form-section">
+                            <h3 class="section-heading">Government IDs</h3>
+                            <div class="form-grid">
+                                <div class="field-group">
+                                    <label class="field-label">SSS Number</label>
+                                    <input type="text" id="sssNumber" class="field-input" placeholder="00-0000000-0">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">TIN Number</label>
+                                    <input type="text" id="tinNumber" class="field-input" placeholder="000-000-000-000">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">PhilHealth Number</label>
+                                    <input type="text" id="philhealthNumber" class="field-input" placeholder="00-000000000-0">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Pag-IBIG Number</label>
+                                    <input type="text" id="pagibigNumber" class="field-input" placeholder="0000-0000-0000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Save Profile
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="clearProfileBtn">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                                Clear Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Upload Document -->
+        <div class="tab-content" id="upload-tab">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Upload Empty Document</h2>
+                    <p class="card-subtitle">Upload a blank form to detect fillable fields</p>
+                </div>
+                <div class="card-body">
+                    <div class="upload-area" id="uploadArea">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <h3>Drop your document here</h3>
+                        <p>or click to browse</p>
+                        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                        <button type="button" class="btn btn-primary" id="browseBtn">Browse Files</button>
+                        <p class="upload-info">Supports: PDF, JPG, PNG (Max 10MB)</p>
+                    </div>
+
+                    <div class="uploaded-file" id="uploadedFile" style="display: none;">
+                        <div class="file-info">
+                            <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                            <div class="file-details">
+                                <p class="file-name" id="fileName">document.pdf</p>
+                                <p class="file-size" id="fileSize">2.5 MB</p>
+                            </div>
+                            <button class="btn-icon" id="removeFileBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="processing-status" id="processingStatus">
+                            <div class="status-item">
+                                <div class="status-icon processing">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                    </svg>
+                                </div>
+                                <span>Analyzing document...</span>
+                            </div>
+                        </div>
+
+                        <div class="detected-fields" id="detectedFields" style="display: none;">
+                            <h3 class="section-heading">Detected Fields</h3>
+                            <div class="field-mapping" id="fieldMapping">
+                                <!-- Dynamic field mapping will be inserted here -->
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" id="processDocumentBtn">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                                </svg>
+                                Process Document
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Auto-Fill -->
+        <div class="tab-content" id="autofill-tab">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Auto-Fill Document</h2>
+                    <p class="card-subtitle">Review and export your filled document</p>
+                </div>
+                <div class="card-body">
+                    <div class="autofill-placeholder" id="autofillPlaceholder">
+                        <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <h3>No Document Ready</h3>
+                        <p>Upload a document and process it first</p>
+                    </div>
+
+                    <div class="autofill-preview" id="autofillPreview" style="display: none;">
+                        <div class="preview-controls">
+                            <button class="btn btn-secondary" id="editMappingBtn">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Edit Mapping
+                            </button>
+                        </div>
+
+                        <div class="filled-document" id="filledDocument">
+                            <!-- Filled document preview will be shown here -->
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="exportFilledPDF">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download Filled PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+ <!-- Tab Content: About -->
+<div class="tab-content" id="about-tab">
+    <div class="content-card">
+        <div class="card-header">
+            <h2 class="card-title">About This Project</h2>
+            <p class="card-subtitle">CFG – Context-Free Generator</p>
+        </div>
+
+        <div class="card-body">
+
+            <h3 class="section-heading">Overview</h3>
+            <p class="about-text">
+                This system, <strong>CFG – Context-Free Generator</strong>, automates the process of
+                filling forms and generating documents using Context-Free Grammar (CFG), OCR field detection,
+                and automated mapping. Users only need to input their personal information once, and the system
+                handles future documents automatically.
+            </p>
+
+            <h3 class="section-heading">Developed By</h3>
+            <div class="team-grid">
+                <div class="team-member"><h4>Danielo Kim R. Ang</h4></div>
+                <div class="team-member"><h4>Gabriel Busi</h4></div>
+                <div class="team-member"><h4>Kim Audrey B. Magan</h4></div>
+                <div class="team-member"><h4>Janelo Rae P. Sedigo</h4></div>
+            </div>
+
+            <h3 class="section-heading">Project Summary</h3>
+            <p class="about-text">
+                The project automates document generation by:
+            </p>
+            <ul class="about-list">
+                <li>Allowing users to store their complete profile once</li>
+                <li>Scanning forms using OCR to detect fields</li>
+                <li>Using CFG rules to classify fields correctly</li>
+                <li>Automatically mapping user data into detected fields</li>
+                <li>Exporting completed forms to PDF, DOCX or HTML</li>
+            </ul>
+
+        </div>
+    </div>
+</div>
+
+<div class="tab-content" id="editProfile-tab">
+    <div class="content-card">
+        <div class="card-header">
+            <h2 class="card-title">Edit My Stored Data</h2>
+            <p class="card-subtitle">Review or modify your saved information</p>
+        </div>
+
+        <div class="card-body">
+            <p>Your saved profile data will be loaded here for editing.</p>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" id="saveEditedProfileBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Changes
+                </button>
+                <button class="btn btn-secondary" id="clearStoredProfileBtn">
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    </svg>
+    Clear Stored Profile Data
+</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    </div>
+
+<!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- Profile Saved Modal -->
+    <div class="modal-overlay" id="profileSavedModal">
+        <div class="modal-content">
+            <div class="modal-icon-container">
+                <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h2 class="modal-title">Profile Saved Successfully!</h2>
+            <p class="modal-message">Your information has been securely stored in this system and is ready to use for auto-filling documents.</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="modalCloseBtn">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Cleared Modal -->
+<div class="modal-overlay" id="profileClearedModal">
+    <div class="modal-content">
+        <div class="modal-icon-container" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+        </div>
+        <h2 class="modal-title">Profile Cleared</h2>
+        <p class="modal-message">Stored profile data has been successfully cleared from the system.</p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="modalClearCloseBtn">Got it!</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>@2025 All rights reserved — Made by CCIS students of Polytechnic University of the Philippines–Manila</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
