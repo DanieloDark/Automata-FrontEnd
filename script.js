@@ -151,21 +151,38 @@ class ProfileManager {
         return formData;
     }
 
-    saveProfile() {
-        const data = this.collectFormData();
-        
-        // Validate required fields
-        const requiredFields = ['fullName', 'email', 'phone', 'address',];
-        const missing = requiredFields.filter(field => !data[field]);
+    async saveProfile() {
+    const data = this.collectFormData();
 
-        if (missing.length > 0) {
-            showToast('Please fill in all required fields', 'error');
-            return;
+    // Validate required fields
+    const requiredFields = ['fullName', 'email', 'phone', 'address'];
+    const missing = requiredFields.filter(field => !data[field]);
+
+    if (missing.length > 0) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/save-profile", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to save profile");
         }
 
-        this.db.saveProfile(data);
         showModal('profileSavedModal');
+    } catch (error) {
+        console.error(error);
+        showToast("Error saving profile", "error");
     }
+}
+
 
     populateForm(data) {
         Object.keys(data).forEach(key => {
