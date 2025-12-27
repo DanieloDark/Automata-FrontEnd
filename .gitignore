@@ -4,3 +4,4 @@ forms/
 poppler/
 *.jpg
 .env
+*.ipynb_checkpoints
