@@ -14,11 +14,13 @@ POPPLER_PATH = os.getenv("POPPLER_PATH")
 pytesseract.pytesseract.tesseract_cmd = os.getenv("PYTESSERACT_PATH")
 
 class Token:
-    def __init__(self, id, type, value, bbox):
+    def __init__(self, id, type, value, bbox, page=0):
         self.id = id
-        self.type = type   # e.g., "FIELD_LABEL"
-        self.value = value # e.g., "Name:"
-        self.bbox = bbox   # (x, y, w, h)
+        self.type = type
+        self.value = value
+        self.bbox = bbox  # (x, y, w, h)
+        self.page = page
+
 
     def __str__(self):
         return f"id: {self.id}, type: {self.type}, value: {self.value}, x: {self.bbox[0]}, y: {self.bbox[1]}, w: {self.bbox[2]}, h: {self.bbox[3]}"
@@ -48,8 +50,14 @@ class Tokenizer:
             ext = file_path.split(".")[-1]
             return ext
 
+    def _pil_to_cv(self, pil_img):
+        return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+
     def tokenize_file(self):
         ext = self._check_extension(self.file_path)
+
+        all_tokens = []
+        page_offset_y = 0
 
         if ext == "pdf":
             pages = convert_from_path(
@@ -58,25 +66,37 @@ class Tokenizer:
                 poppler_path=self.poppler_path
             )
 
-            pdf_final_text_tokens = []
-
-            for page in pages:
-                # PIL image → get width
-                page_width, page_height = page.size
+            for page_index, page in enumerate(pages):
+                img = self.pil_to_cv(page)
+                page_height, page_width = img.shape[:2]
 
                 data = pytesseract.image_to_data(
-                    page,
+                    img,
                     output_type=Output.DICT
                 )
 
-                final_tokens = self._process_ocr_data(
+                textual_tokens = self._process_ocr_data(
                     data,
-                    width=page_width
+                    width=page_width,
+                    page=page
                 )
-                pdf_final_text_tokens.append(final_tokens)
-            
-            # find a way here to call the opencvfunction
-            return pdf_final_text_tokens
+
+                visual_tokens = self._get_visual_token(img, page)
+ 
+                page_tokens = self._merge_and_sort(
+                    textual_tokens,
+                    visual_tokens
+                )
+
+                # Apply Y offset so pages don't overlap
+                for t in page_tokens:
+                    x, y, w, h = t.bbox
+                    t.bbox = (x, y + page_offset_y, w, h)
+
+                all_tokens.extend(page_tokens)
+                page_offset_y += page_height
+
+            return all_tokens
 
         else:
             img = cv2.imread(self.file_path)
@@ -89,15 +109,20 @@ class Tokenizer:
 
             textual_tokens = self._process_ocr_data(
                 data,
-                width=page_width
+                width=page_width,
+                page=page
             )
 
-            visual_tokens = self._get_visual_token()
+            visual_tokens = self._get_visual_token(img, page)
 
-            final_tokens = self._merge_and_sort(textual_tokens, visual_tokens)
+            final_tokens = self._merge_and_sort(
+                textual_tokens,
+                visual_tokens
+            )
+
             return final_tokens
 
-    def _process_ocr_data(self, data, width, gap_threshold=27):
+    def _process_ocr_data(self, data, width, page, gap_threshold=27):
         """
         Groups Tesseract words into lines based on Block+Paragraph+Line
         then splits them horizontally if a large gap is detectec.
@@ -172,7 +197,8 @@ class Tokenizer:
                             bbox=(current_phrase_bbox[0], 
                                   current_phrase_bbox[1], 
                                   current_phrase_bbox[2], 
-                                  current_phrase_bbox[3],)
+                                  current_phrase_bbox[3],),
+                            page=page
                         ))
                         # "id": token_id,
                         # "type": token_type,
@@ -222,7 +248,8 @@ class Tokenizer:
                             bbox=(current_phrase_bbox[0], 
                                   current_phrase_bbox[1], 
                                   current_phrase_bbox[2], 
-                                  current_phrase_bbox[3],)
+                                  current_phrase_bbox[3],),
+                            page=page
                         ))
                         # "id": token_id,
                         # "type": token_type,
@@ -279,8 +306,9 @@ class Tokenizer:
         return final_tokens
 
     # OpenCV Implementation
-    def _get_visual_token(self):
-        img = cv2.imread(self.file_path)
+    def _get_visual_token(self, img, page):
+
+        # img = cv2.imread(self.file_path)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # binary image (invert so lines are white)
@@ -316,7 +344,8 @@ class Tokenizer:
                         id = 4,
                         type = "FIELD_SPACE",
                         value = "____",
-                        bbox = (x, y, w, h)
+                        bbox = (x, y, w, h),
+                        page=page
                     )
                 )
 
