@@ -9,6 +9,7 @@ import cv2
 from textwrap import dedent
 
 from Parser import Parser
+from Generator import Generator
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ class Tokenizer:
         self.file_path = file_path
         self.poppler_path  = poppler_path
         self.pytesseract_path = pytesseract_path
+        self.img = None
 
     def __str__(self):
         return dedent(f"""Tokenizer: 
@@ -44,10 +46,6 @@ class Tokenizer:
         valid_ext = ("jpg", "png", "jpeg", "pdf")
         if not self.file_path.endswith(valid_ext):
             raise()
-            
-                # raise(UnexpectedFileError(
-                #     textwrap.dedent(f"The expected file extension for {dataset} is: {expected_ext}")
-                # ))
         else:
             ext = file_path.split(".")[-1]
             return ext
@@ -55,7 +53,7 @@ class Tokenizer:
     def _pil_to_cv(self, pil_img):
         return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
-    def tokenize_file(self):
+    def tokenize_file(self, output_path=None):
         ext = self._check_extension(self.file_path)
 
         all_tokens = []
@@ -69,11 +67,27 @@ class Tokenizer:
             )
 
             for page_index, page in enumerate(pages):
-                img = self.pil_to_cv(page)
-                page_height, page_width = img.shape[:2]
+                self.img = self._pil_to_cv(page)
+                page_height, page_width = self.img.shape[:2]
+
+                if output_path is not None:
+                    n = len(pages)
+                    # Get the base filename without the path or extension
+                    base_name = os.path.basename(self.file_path).split(".")[0]
+                    
+                    # Create a unique filename for the specific page
+                    # Example: ../form_images/personal_data_sheet_page_0.png
+                    if n > 1:
+                        file_name = f"{base_name}_page_{page_index}.png"
+                    else:
+                        file_name = f"{base_name}.png"    
+                    destination = os.path.join(output_path, file_name)
+                    
+                    # Save using the 'destination' path, not the folder 'output_path'
+                    page.save(destination, 'PNG')
 
                 data = pytesseract.image_to_data(
-                    img,
+                    self.img,
                     output_type=Output.DICT
                 )
 
@@ -83,7 +97,7 @@ class Tokenizer:
                     page=page
                 )
 
-                visual_tokens = self._get_visual_token(img, page)
+                visual_tokens = self._get_visual_token(self.img, page)
  
                 page_tokens = self._merge_and_sort(
                     textual_tokens,
@@ -100,12 +114,12 @@ class Tokenizer:
 
             return all_tokens
 
-        else:
-            img = cv2.imread(self.file_path)
-            page_height, page_width = img.shape[:2]
+        else:  # meaning if the file uploaded is not pdf then use OpenCV
+            self.img = cv2.imread(self.file_path)
+            page_height, page_width = self.img.shape[:2]
 
             data = pytesseract.image_to_data(
-                img,
+                self.img,
                 output_type=Output.DICT
             )
 
@@ -114,7 +128,7 @@ class Tokenizer:
                 width=page_width,
             )
 
-            visual_tokens = self._get_visual_token(img)
+            visual_tokens = self._get_visual_token(self.img)
 
             final_tokens = self._merge_and_sort(
                 textual_tokens,
@@ -157,7 +171,7 @@ class Tokenizer:
             raw_lines[line_id].append(word_info)
 
 
-        # 2. Process each line: Merge words, but split on huge gaps
+        # Process each line: Merge words, but split on huge gaps
         final_tokens = []
 
         for line_id, words in raw_lines.items():
@@ -262,48 +276,54 @@ class Tokenizer:
                     #})
 
 
-        # clean the final tokens
+        # Clean the final tokens
         notes = [t for t in final_tokens if t.type == "NOTE"]
+        if not notes:
+            return final_tokens
+
         heights = np.array([t.bbox[3] for t in notes])
         median_h = np.median(heights)
-        max_h = np.max(heights)
 
         PAGE_WIDTH = width
+        TOP_REGION = 350  # Stricter threshold for top of page
 
-        def is_form_title(t, median_h):
+        def is_form_title(t, notes, median_h):
+            """Form title is the topmost element that's prominent"""
+            # Find the note with minimum Y coordinate (topmost)
+            topmost_y = min(note.bbox[1] for note in notes)
+            
+            # Check if this token is the topmost one (or very close to it)
+            is_topmost = abs(t.bbox[1] - topmost_y) < 50  # Allow 50px tolerance
+            
             return (
-                # h
-                t.bbox[3] >= median_h * 1.3 and   # ← lower
-                # y
-                t.bbox[1] < 300 and
-                # w
-                t.bbox[2] > 0.5 * PAGE_WIDTH      # ← lower
+                is_topmost and                                # Must be at the top
+                t.bbox[1] < TOP_REGION and                    # In top region
+                t.bbox[3] >= median_h * 0.90 and              # Taller than typical notes
+                t.bbox[2] >= 0.20 * PAGE_WIDTH and            # Reasonably wide
+                len(t.value.split()) >= 2                     # Multi-word
             )
 
-        
         def is_section_title(t, median_h):
+            """Section titles are wider than labels but not as prominent as form title"""
             return (
-                t.bbox[3] >= median_h * 0.80 and          # similar to notes
-                t.bbox[2] >= 0.10 * PAGE_WIDTH and         # wider than labels
-                len(t.value.split()) <= 6 and
-                not t.value.strip().endswith(":")   # exclude labels
+                t.bbox[3] >= median_h * 0.75 and              # Similar height to notes
+                t.bbox[2] >= 0.20 * PAGE_WIDTH and            # Wider than typical labels
+                len(t.value.split()) <= 6 and                 # Reasonable word count
+                not t.value.strip().endswith(":")             # Exclude field labels
             )
 
-
+        # Classify tokens
         for t in final_tokens:
             if t.type != "NOTE":
                 continue
 
-            if is_form_title(t, median_h):
+            if is_form_title(t, notes, median_h):
                 t.type = "FORM_TITLE"
                 t.id = 1
             elif is_section_title(t, median_h):
                 t.type = "SECTION_TITLE"
                 t.id = 2
-            else:
-                t.type = "NOTE"
 
-        
         return final_tokens
 
     # OpenCV Implementation
@@ -332,7 +352,7 @@ class Tokenizer:
         visual_tokens = []
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
-            if w > 70 and h > 5:
+            if w > 100 and h > 5:
                 # Store as a dictionary or object to match your Token style
                 # visual_tokens.append({
                 #     'type': 'FIELD_SPACE', # or CHECKBOX depending on shape
@@ -355,7 +375,7 @@ class Tokenizer:
         visual_tokens.sort(key=lambda b: (b.bbox[1] // 10, b.bbox[0]))
         return visual_tokens
 
-    def _merge_and_sort(self, textual_tokens, visual_tokens, row_tolerance=20):
+    def _merge_and_sort(self, textual_tokens, visual_tokens, row_tolerance=40):
         
         # 1. Unified List
         all_tokens = textual_tokens + visual_tokens
@@ -405,8 +425,10 @@ class Tokenizer:
         
         return final_stream
 
-    def _visualize_file(self, tokens, img):
+    def _visualize_file(self, tokens, img=None):
 
+        if img == None:
+            img = self.img
         # DO NOT reload the image inside the loop
         for t in tokens:
             x, y, w, h = t.bbox
@@ -446,12 +468,26 @@ class Tokenizer:
         cv2.imwrite("../detections/final_detected1.jpg", img)
 
 def main():
-    path = "../medical_form.jpg"
+    # path = "../forms/personal_data_sheet.pdf"
+    # path = "../forms/bg_verification_form.pdf"
+    # path = "../forms/employment_application_form.pdf"
+    # path = "../forms/contact_form.pdf"
+    # path = "../forms/onboarding_form.pdf"
+
+    # path = "../form_images/personal_data_sheet.png"
+    # path = "../form_images/bg_verification_form.png"
+    # path = "../form_images/employment_application_form.png"
+    # path = "../form_images/contact_form.png"
+    path = "../form_images/onboarding_form.png"
+
+    # path = "../medical_form.jpg"
+    
     tokenizer = Tokenizer(path)
     print(tokenizer) 
     tokens = tokenizer.tokenize_file()
-    img = cv2.imread(path)
-    tokenizer._visualize_file(tokens, img.copy())
+
+    # img = cv2.imread(path)
+    tokenizer._visualize_file(tokens)
 
     for token in tokens:
         print(token)
@@ -459,15 +495,45 @@ def main():
     parser = Parser()
 
     accepted, errors = parser(tokens)
+    print(errors)
 
     if accepted:
-        print("Form ACCEPTED")
-    else:
-        print("Form REJECTED")
-        for e in errors:
-            print("Error:", e)
+        print("Form Accepted, now generating ...")
 
-    print(parser.mappings)
+        user = {
+            "Full Name": "Juan Dela Cruz",
+            "Date of Birth": "1990-05-15",
+            "Gender": "Lalaki",
+            "Nationality": "Pilipino",
+            
+            "Email Address": "juan.delacruz@example.com",
+            "Phone Number": "+63 912 345 6789",
+            "Alternate Phone": "+63 998 765 4321",
+            "Address": "123 Mabini Street, Barangay Malinis, Quezon City, Metro Manila, Pilipinas",
+            
+            "Highest Education Level": "Kolehiyo",
+            "School": "Unibersidad ng Pilipinas",
+            "Course/Program": "Inhinyeriyang Elektrikal",
+            "Year Graduated": "2012",
+            
+            "Current Employer": "San Miguel Corporation",
+            "Job Title": "Senior Software Engineer",
+            "Years of Experience": "10",
+            "Monthly Salary": "₱80,000",
+            
+            "SSS Number": "34-5678901-2",
+            "TIN Number": "123-456-789",
+            "PhilHealth Number": "12-345678901-2",
+            "Pag-IBIG Number": "1234-5678-9012"
+        }
+        gen = Generator()
+
+        gen.generate(path, parser.mappings, user, "../filled_out_form1.jpg")
+
+    else:
+        print("Not Accepted")
+    
+    # print(parser.mappings)
 
 if __name__ == "__main__":
     main()
