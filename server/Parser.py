@@ -1,3 +1,4 @@
+import re
 class Parser:
 
     FORM_TITLE = 1
@@ -138,7 +139,7 @@ class Parser:
             if ok: # Only save if both matches succeeded
                 mapping_entry = {
                     "section": self.current_section,
-                    "label": label_token.value,      # e.g., "Full Name:"
+                    "label": re.sub(r'[\W_]+$', '', label_token.value),      # e.g., "Full Name"
                     "fill_target": {                 # The coordinates to draw text on
                         "x": space_token.bbox[0],
                         "y": space_token.bbox[1],

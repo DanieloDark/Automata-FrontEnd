@@ -26,7 +26,7 @@ class Token:
 
 
     def __str__(self):
-        return f"id: {self.id}, type: {self.type}, value: {self.value}, x: {self.bbox[0]}, y: {self.bbox[1]}, w: {self.bbox[2]}, h: {self.bbox[3]}"
+        return f"id: {self.id}, type: {self.type}, value: {self.value}, x: {self.bbox[0]}, y: {self.bbox[1]}, w: {self.bbox[2]}, h: {self.bbox[3]}, page: {self.page}"
 
 class Tokenizer:
 
@@ -52,11 +52,19 @@ class Tokenizer:
 
     def _pil_to_cv(self, pil_img):
         return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+    
+    def _get_dimensions(self):
+        """Returns (height, width) of the last processed image"""
+        if self.img is not None:
+            height, width = self.img.shape[:2]
+            return height, width
+        return None, None
 
     def tokenize_file(self, output_path=None):
         ext = self._check_extension(self.file_path)
 
         all_tokens = []
+        dimensions = []
         page_offset_y = 0
 
         if ext == "pdf":
@@ -66,9 +74,14 @@ class Tokenizer:
                 poppler_path=self.poppler_path
             )
 
+            # if len(pages) > 1:
+            #     raise()
+            
             for page_index, page in enumerate(pages):
                 self.img = self._pil_to_cv(page)
-                page_height, page_width = self.img.shape[:2]
+                if self.img is not None:
+                    page_height, page_width = self._get_dimensions()
+                    dimensions.append((page_height, page_width))
 
                 if output_path is not None:
                     n = len(pages)
@@ -112,11 +125,14 @@ class Tokenizer:
                 all_tokens.extend(page_tokens)
                 page_offset_y += page_height
 
-            return all_tokens
+            return all_tokens, dimensions
 
         else:  # meaning if the file uploaded is not pdf then use OpenCV
             self.img = cv2.imread(self.file_path)
-            page_height, page_width = self.img.shape[:2]
+            
+            if self.img is not None:
+                page_height, page_width = self._get_dimensions()
+                dimensions.append((page_height, page_width))
 
             data = pytesseract.image_to_data(
                 self.img,
@@ -135,7 +151,7 @@ class Tokenizer:
                 visual_tokens
             )
 
-            return final_tokens
+            return final_tokens, dimensions
 
     def _process_ocr_data(self, data, width, page=0, gap_threshold=27):
         """
@@ -484,11 +500,12 @@ def main():
     
     tokenizer = Tokenizer(path)
     print(tokenizer) 
-    tokens = tokenizer.tokenize_file()
+    tokens, dimensions = tokenizer.tokenize_file()
 
     # img = cv2.imread(path)
     tokenizer._visualize_file(tokens)
 
+    print(dimensions)
     for token in tokens:
         print(token)
 
@@ -533,7 +550,7 @@ def main():
     else:
         print("Not Accepted")
     
-    # print(parser.mappings)
+    print(parser.mappings)
 
 if __name__ == "__main__":
     main()

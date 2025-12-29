@@ -1,5 +1,7 @@
 import os
-from flask import Flask, render_template, session, redirect, request
+from flask import Flask, render_template, session, redirect, request, jsonify
+from Token import Tokenizer
+from Parser import Parser
 
 app = Flask(__name__)
 app.secret_key = "my_secret_key"  
@@ -18,6 +20,55 @@ def index():
     print(session.get("fullname"))
     return render_template('index.html')
 
+
+@app.route('/process')
+def process():
+    path = ""
+    # path = "../form_images/onboarding_form.png"
+
+    # Tokenize the uploaded file
+    tokenizer = Tokenizer(path)
+    try:
+        tokens, height_width_dim = tokenizer.tokenize_file()  # Add error in the tokens
+    except Exception as e:
+        print(e)
+
+    # Parse the tokens taken from the previous step
+    parser = Parser()
+    accepted, errors = parser(tokens)
+
+    if accepted:
+        # Dimensions
+
+        # Serialize tokens - assuming tokens are objects with attributes
+        serialized_tokens = [
+            {
+                'id': token.id,
+                'type': token.type,
+                'value': token.value,
+                'x': token.bbox[0],
+                'y': token.bbox[1],
+                'w': token.bbox[2],
+                'h': token.bbox[3],
+                'page': token.page
+            }
+            for token in tokens
+        ]
+        
+        # Get mappings from parser (adjust based on your Parser implementation)
+        mappings = parser.mappings  # or however you access the mappings
+        
+        return jsonify({
+            'success': True,
+            'height_width_dim': height_width_dim,
+            'tokens': serialized_tokens,
+            'mappings': mappings,
+        }), 200
+    else:
+        return jsonify({
+            'success': False,
+            'errors': errors
+        }), 400
 
 
 # Route for when analyze with OCR 
