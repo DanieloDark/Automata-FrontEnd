@@ -48,7 +48,7 @@ class TabManager {
 
 
 // User Profile Database (In-Memory Storage)
-class ProfileDatabase {
+/*class ProfileDatabase {
     constructor() {
         this.profile = this.loadProfile();
     }
@@ -77,7 +77,7 @@ class ProfileDatabase {
     }
 }
 
-
+*/
 // Field Mapping Configuration
 const FIELD_MAPPINGS = {
     // Personal Information
@@ -115,16 +115,18 @@ const FIELD_MAPPINGS = {
 // Profile Manager
 class ProfileManager {
     constructor() {
-        this.db = new ProfileDatabase();
         this.form = document.getElementById('profileForm');
         this.init();
     }
 
     init() {
         // Load existing profile if available
-        if (this.db.hasProfile()) {
-            this.populateForm(this.db.getProfile());
+        loadProfileFromBackend().then(profile => {
+        if (profile) {
+            this.populateForm(profile);
         }
+        });
+
 
         // Form submission
         this.form.addEventListener('submit', (e) => {
@@ -205,29 +207,11 @@ class ProfileManager {
 }
 }
 
-// Clears ALL stored profile data (used only in Edit Data page)
-function clearStoredProfileData() {
-    if (!confirm("Are you sure you want to delete ALL saved profile data? This cannot be undone.")) {
-        return;
-    }
-
-    // Uses your existing KC_Database class
-    const db = new KC_Database();
-    db.clearProfile();
-
-    // Show your existing red popup
-    showModal("profileClearedModal");
-
-    // Optional: Clear edit form inputs after wipe
-    const editInputs = document.querySelectorAll('#editProfile-tab input, #editProfile-tab textarea, #editProfile-tab select');
-    editInputs.forEach(input => input.value = "");
-}
 
 
 // Document Upload Manager
 class DocumentUploadManager {
     constructor() {
-        this.db = new ProfileDatabase();
         this.uploadedFile = null;
         this.detectedFields = [];
         this.init();
@@ -322,11 +306,12 @@ class DocumentUploadManager {
         return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     }
 
+    
     async processDocument() {
-        if (!this.db.hasProfile()) {
-            showToast('Please create your profile first', 'error');
-            return;
-        }
+        if (!(await backendHasProfile())) {
+    showToast('Please create your profile first', 'error');
+    return;
+}
 
         const statusDiv = document.getElementById('processingStatus');
         statusDiv.style.display = 'block';
@@ -344,6 +329,7 @@ class DocumentUploadManager {
         // Simulate OCR processing
         await this.simulateOCR();
     }
+
 
     async simulateOCR() {
         // Simulate processing delay
@@ -363,7 +349,7 @@ class DocumentUploadManager {
         this.showDetectedFields();
     }
 
-    showDetectedFields() {
+   async showDetectedFields() {
         const statusDiv = document.getElementById('processingStatus');
         statusDiv.innerHTML = `
             <div class="status-item">
@@ -377,7 +363,7 @@ class DocumentUploadManager {
             </div>
         `;
 
-        const profile = this.db.getProfile();
+        const profile = await loadProfileFromBackend();
         const mappingHTML = this.detectedFields.map(field => {
             const value = profile[field.mapped] || 'Not in profile';
             return `
@@ -412,10 +398,25 @@ class DocumentUploadManager {
 }
 
 
+async function backendHasProfile() {
+    const res = await fetch("/get-profile");
+    if (!res.ok) return false;
+    const data = await res.json();
+    return Object.keys(data).length > 0;
+
+}
+
+async function loadProfileFromBackend() {
+    const res = await fetch("http://127.0.0.1:5000/get-profile");
+    if (!res.ok) return null;
+    return await res.json();
+}
+
+
+
 // Auto-Fill Manager
 class AutoFillManager {
     constructor() {
-        this.db = new ProfileDatabase();
         this.init();
     }
 
@@ -450,8 +451,8 @@ class AutoFillManager {
         this.generateFilledDocument();
     }
 
-    generateFilledDocument() {
-        const profile = this.db.getProfile();
+    async generateFilledDocument() {
+        const profile = await loadProfileFromBackend();
         const fields = window.currentDocument.fields;
 
         const documentHTML = `
@@ -572,7 +573,6 @@ function hideModal(modalId) {
     }
 }
 
-
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
     new ThemeManager();
@@ -594,54 +594,59 @@ document.getElementById("clearStoredProfileBtn").addEventListener("click", clear
 
 });
 
-// Switch to Edit Profile tab
-document.querySelector('[data-tab="editProfile"]').addEventListener('click', () => {
-    switchTab('editProfile');
-    loadProfileForEditing();
-});
 
-// Load saved profile data into edit form
-function loadProfileForEditing() {
-    const savedData = JSON.parse(localStorage.getItem("profileData") || "{}");
-
-    // Loop through saved data and auto-fill matching inputs
-    for (const key in savedData) {
-        const field = document.querySelector(`#${key}`);
-        if (field) field.value = savedData[key];
-    }
-}
-
-// Re-save edited data
-document.getElementById("saveEditedProfileBtn").addEventListener("click", () => {
+document.getElementById("saveEditedProfileBtn").addEventListener("click", async () => {
     const inputs = document.querySelectorAll("#profileForm input, #profileForm textarea, #profileForm select");
     const updatedData = {};
 
     inputs.forEach(input => {
-        updatedData[input.id] = input.value;
+        if (input.value.trim()) {
+            updatedData[input.id] = input.value.trim();
+        }
     });
 
-    localStorage.setItem("profileData", JSON.stringify(updatedData));
-    showToast("Profile updated successfully!");
+    try {
+        const res = await fetch("http://127.0.0.1:5000/save-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (!res.ok) throw new Error();
+
+        showToast("Profile updated successfully!", "success");
+    } catch {
+        showToast("Failed to update profile", "error");
+    }
 });
 
 
-// Clear ALL stored profile data (now with the old popup)
+
 function clearStoredProfileData() {
-    // Show the old modal BEFORE clearing data
+    // Show confirmation modal first
     showModal("profileClearedModal");
 
-    // When the user confirms inside the modal
     const confirmBtn = document.getElementById("confirmClearProfileData");
+    confirmBtn.onclick = null;
+    confirmBtn.onclick = async () => {
+        try {
+            await fetch("http://127.0.0.1:5000/clear-profile", {
+                method: "POST"
+            });
 
-    confirmBtn.onclick = () => {
-        const db = new KC_Database();
-        db.clearProfile();
+            // Clear fields inside the Edit Profile tab
+            const editInputs = document.querySelectorAll(
+                '#editProfile-tab input, #editProfile-tab textarea, #editProfile-tab select'
+            );
 
-        // Clear fields inside the Edit Data tab
-        const editInputs = document.querySelectorAll('#editProfile-tab input, #editProfile-tab textarea, #editProfile-tab select');
-        editInputs.forEach(input => input.value = "");
+            editInputs.forEach(input => input.value = "");
 
-        hideModal("profileClearedModal");
-        showToast("Stored profile data deleted!");
+            hideModal("profileClearedModal");
+            showToast("Stored profile data deleted!", "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to clear profile data", "error");
+        }
     };
 }
+
