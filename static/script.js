@@ -206,6 +206,10 @@ function clearStoredProfileData() {
     editInputs.forEach(input => input.value = "");
 }
 
+function logout() {
+    window.location.href = "/logout";
+}
+
 
 // Document Upload Manager
 class DocumentUploadManager {

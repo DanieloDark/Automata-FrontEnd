@@ -2,24 +2,30 @@ import sqlite3
 
 DB_NAME = "app.db"
 
+
 def get_db():
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # User profile (stored once)
+    # --------------------------------------------------
+    # USERS TABLE (AUTH + PROFILE)
+    # --------------------------------------------------
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         fullname TEXT,
+        email TEXT UNIQUE,
+        password TEXT,
+
         dateofbirth TEXT,
         gender TEXT,
         nationality TEXT,
-        email TEXT,
         phone TEXT,
         alternatephone TEXT,
         address TEXT,
@@ -38,7 +44,9 @@ def init_db():
     )
     """)
 
-    # Uploaded / processed document
+    # --------------------------------------------------
+    # DOCUMENTS TABLE
+    # --------------------------------------------------
     cur.execute("""
     CREATE TABLE IF NOT EXISTS documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +55,9 @@ def init_db():
     )
     """)
 
-    # Tokens from OCR
+    # --------------------------------------------------
+    # TOKENS TABLE (OCR OUTPUT)
+    # --------------------------------------------------
     cur.execute("""
     CREATE TABLE IF NOT EXISTS tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +73,9 @@ def init_db():
     )
     """)
 
-    # Parser mappings (CFG result)
+    # --------------------------------------------------
+    # MAPPINGS TABLE (CFG PARSER OUTPUT)
+    # --------------------------------------------------
     cur.execute("""
     CREATE TABLE IF NOT EXISTS mappings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

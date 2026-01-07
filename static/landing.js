@@ -72,7 +72,7 @@ async function handleLogin(event) {
         }
         
         // Redirect to main app
-        window.location.href = '/index.html';
+        window.location.href = '/';
         
     } catch (error) {
         console.error('Login error:', error);
@@ -117,7 +117,7 @@ async function handleSignup(event) {
         }
         
         // Redirect to main app
-        window.location.href = '/index.html';
+        window.location.href = '/';
         
     } catch (error) {
         console.error('Signup error:', error);
