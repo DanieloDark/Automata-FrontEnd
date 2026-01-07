@@ -37,8 +37,7 @@
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                         </svg>
                     </button>
-                    <button class="btn btn-secondary" onclick="showAuthModal('login')">Login</button>
-                    <button class="btn btn-primary" onclick="showAuthModal('signup')">Sign Up</button>
+                    <button class="btn btn-primary" onclick="handleGetStarted()">Get Started</button>
                 </div>
             </nav>
 
@@ -46,15 +45,12 @@
                 <h1 class="hero-title">Automate Your Document Filling</h1>
                 <p class="hero-subtitle">Store your information once, fill forms instantly with AI-powered field detection</p>
                 <div class="hero-actions">
-                    <button class="btn btn-primary btn-large" onclick="showAuthModal('signup')">
-                        Get Started Free
+                    <button class="btn btn-primary btn-large" onclick="handleGetStarted()">
+                        Get Started
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <line x1="5" y1="12" x2="19" y2="12"/>
                             <polyline points="12 5 19 12 12 19"/>
                         </svg>
-                    </button>
-                    <button class="btn btn-secondary btn-large" onclick="showAuthModal('login')">
-                        Login to Account
                     </button>
                 </div>
             </div>
@@ -85,7 +81,7 @@
             </div>
         </div>
 
-        <!-- Problem Section - NEW -->
+        <!-- Problem Section -->
         <div class="problem-section">
             <div class="problem-content">
                 <div class="problem-text">
@@ -145,76 +141,10 @@
         </div>
     </div>
 
-    <!-- Auth Modal -->
-    <div class="modal-overlay" id="authModal">
-        <div class="modal-content auth-modal">
-            <button class="modal-close" onclick="hideAuthModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
-
-            <!-- Login Form -->
-            <div class="auth-form" id="loginForm">
-                <h2 class="auth-title">Welcome Back</h2>
-                <p class="auth-subtitle">Login to your account</p>
-                
-                <form onsubmit="handleLogin(event)">
-                    <div class="field-group">
-                        <label class="field-label">Email</label>
-                        <input type="email" class="field-input" placeholder="your.email@example.com" required>
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Password</label>
-                        <input type="password" class="field-input" placeholder="Enter your password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Login</button>
-                </form>
-
-                <p class="auth-switch">
-                    Don't have an account? 
-                    <a href="#" onclick="switchAuthForm('signup'); return false;">Sign up</a>
-                </p>
-            </div>
-
-            <!-- Signup Form -->
-            <div class="auth-form" id="signupForm" style="display: none;">
-                <h2 class="auth-title">Create Account</h2>
-                <p class="auth-subtitle">Sign up to get started</p>
-                
-                <form onsubmit="handleSignup(event)">
-                    <div class="field-group">
-                        <label class="field-label">Full Name</label>
-                        <input type="text" class="field-input" placeholder="Juan Dela Cruz" required>
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Email</label>
-                        <input type="email" class="field-input" placeholder="your.email@example.com" required>
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Password</label>
-                        <input type="password" class="field-input" placeholder="Create a strong password" required>
-                    </div>
-                    <div class="field-group">
-                        <label class="field-label">Confirm Password</label>
-                        <input type="password" class="field-input" placeholder="Confirm your password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Create Account</button>
-                </form>
-
-                <p class="auth-switch">
-                    Already have an account? 
-                    <a href="#" onclick="switchAuthForm('login'); return false;">Login</a>
-                </p>
-            </div>
-        </div>
-    </div>
-
-<!-- Footer -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <p>@2026 All rights reserved — Made by CCIS students of Polytechnic University of the Philippines–Manila</p>
+            <p>@2026 All rights reserved — Made by CCIS students of Polytechnic University of the Philippines—Manila</p>
         </div>
     </footer>
 

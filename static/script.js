@@ -573,8 +573,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Event listener for Clear Stored Profile Data button
-document.getElementById("clearStoredProfileBtn").addEventListener("click", clearStoredProfileData);
+    document.getElementById("clearStoredProfileBtn").addEventListener("click", clearStoredProfileData);
 
+    // Logout button - redirect to landing page
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        window.location.href = './landing.html';
+    });
 });
 
 // Switch to Edit Profile tab
@@ -627,4 +631,10 @@ function clearStoredProfileData() {
         hideModal("profileClearedModal");
         showToast("Stored profile data deleted!");
     };
+}
+
+// Handle Get Started - redirect to main app
+function handleGetStarted() {
+    // Redirect to main application
+    window.location.href = './index.html';
 }
