@@ -696,13 +696,6 @@ function clearStoredProfileData() {
     };
 }
 
-<<<<<<< HEAD
-// Handle Get Started - redirect to main app
-function handleGetStarted() {
-    // Redirect to main application
-    window.location.href = './index.html';
-}
-=======
 fileInput.addEventListener("change", async () => {
     const uploadedFile = fileInput.files[0];
     if (!uploadedFile) return;
@@ -729,5 +722,8 @@ fileInput.addEventListener("change", async () => {
     }
 });
 
-
->>>>>>> fe71916dfa7b6352ebe61701b4f242cdf5610b98
+// Handle Get Started - redirect to main app
+// function handleGetStarted() {
+//     // Redirect to main application
+//     window.location.href = './index.html';
+// }
