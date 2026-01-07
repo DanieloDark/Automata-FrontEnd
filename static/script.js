@@ -99,10 +99,10 @@ const FIELD_MAPPINGS = {
     'year_graduated': ['yearGraduated', 'graduation_year', 'year_of_graduation'],
     
     // Employment Information
-    'employer': ['employer', 'company', 'current_employer'],
+    'employer': ['employer', 'company', 'current_employer', 'currentEmployer'],
     'position': ['position', 'job_title', 'designation'],
     'experience': ['experience', 'years_of_experience', 'work_experience'],
-    'salary': ['salary', 'monthly_salary', 'income'],
+    'salary': ['salary', 'monthly_salary', 'income', 'monthlySalary'],
     
     // Government IDs
     'sss_number': ['sssNumber', 'sss', 'social_security'],
